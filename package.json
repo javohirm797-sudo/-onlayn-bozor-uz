@@ -1,0 +1,19 @@
+{
+  "name": "onlayn-bozor-uz",
+  "version": "1.0.0",
+  "description": "Onlayn Bozor uz - Telefon oldi-sotdi milliy platformasi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.23.0",
+    "serverless-http": "^4.0.0",
+    "uuid": "^9.0.1"
+  }
+}
