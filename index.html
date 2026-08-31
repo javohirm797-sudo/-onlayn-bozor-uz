@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="/css/style.css?v=6.0">
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -43,8 +42,8 @@
     }
   </script>
   
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="/css/style.css">
+  <!-- Custom CSS (Always fresh) -->
+  <link rel="stylesheet" href="/css/style.css?v=5.0">
 </head>
 <body class="bg-brand-dark text-slate-100 font-sans min-h-screen flex flex-col pb-16 lg:pb-0 selection:bg-brand-green selection:text-black">
 
@@ -64,8 +63,15 @@
       </div>
 
       <div class="flex items-center space-x-3 text-xs">
-        <button onclick="openVipModalDirect()" class="text-brand-green hover:underline font-bold flex items-center gap-1 text-[11px] sm:text-xs">
-          <i class="fa-solid fa-crown text-xs"></i> <span>VIP Tariflar (5 000 so'mdan)</span>
+        <div class="flex items-center gap-1.5 bg-brand-card/90 border border-green-500/40 px-2.5 py-0.5 rounded-full text-[10px] text-slate-300 font-bold shadow">
+          <span class="w-2 h-2 rounded-full bg-brand-green animate-ping"></span>
+          <span id="headerOnlineCount" class="text-brand-green font-extrabold">1</span> <span>online</span>
+          <span class="text-slate-600">|</span>
+          <i class="fa-solid fa-eye text-cyan-400 text-[9px]"></i>
+          <span id="headerTotalViews" class="text-cyan-400 font-extrabold">1</span> <span>ko'rish</span>
+        </div>
+        <button onclick="openVipModalDirect()" class="text-brand-green hover:underline font-bold hidden sm:flex items-center gap-1 text-[11px]">
+          <i class="fa-solid fa-crown text-xs"></i> <span>VIP (5 000 so'm)</span>
         </button>
         <span class="text-slate-600 hidden sm:inline">|</span>
         <button onclick="openAdminModal()" class="text-slate-400 hover:text-white flex items-center gap-1 text-[11px] transition-colors" title="Admin Panel">
@@ -850,22 +856,81 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-          <div class="bg-brand-darker p-3 rounded-2xl border border-brand-cardBorder">
-            <div class="text-[11px] sm:text-xs text-slate-400 font-medium">Jami E'lonlar</div>
-            <div id="statTotalListings" class="text-lg sm:text-xl font-display font-extrabold text-white mt-0.5">0</div>
+        <!-- REAL-TIME LIVE STATS ROW -->
+        <div class="space-y-2">
+          <div class="text-xs font-extrabold text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-brand-green"></i>
+            <span>Real Vaqt Ko'rsatkichlari & Statistikasi</span>
           </div>
-          <div class="bg-brand-darker p-3 rounded-2xl border border-green-500/40">
-            <div class="text-[11px] sm:text-xs text-brand-green font-medium">Faol VIP E'lonlar</div>
-            <div id="statActiveVip" class="text-lg sm:text-xl font-display font-extrabold text-brand-green mt-0.5">0</div>
-          </div>
-          <div class="bg-brand-darker p-3 rounded-2xl border border-blue-500/40">
-            <div class="text-[11px] sm:text-xs text-blue-400 font-medium">Kutilayotgan VIP</div>
-            <div id="statPendingVip" class="text-lg sm:text-xl font-display font-extrabold text-blue-400 mt-0.5">0</div>
-          </div>
-          <div class="bg-brand-darker p-3 rounded-2xl border border-emerald-500/40">
-            <div class="text-[11px] sm:text-xs text-emerald-400 font-medium">Jami VIP Tushum</div>
-            <div id="statTotalEarned" class="text-base sm:text-lg font-display font-extrabold text-emerald-400 mt-0.5">0 so'm</div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
+            
+            <!-- 1. LIVE ONLINE -->
+            <div class="bg-gradient-to-br from-green-950/40 to-slate-900 p-3.5 rounded-2xl border-2 border-green-500/60 shadow-lg shadow-green-500/10 flex flex-col justify-between">
+              <div class="text-[11px] sm:text-xs text-brand-green font-black flex items-center gap-1.5 uppercase tracking-wide">
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-green animate-ping inline-block"></span>
+                <span>Online (Jonli)</span>
+              </div>
+              <div class="mt-1.5 flex items-baseline gap-1">
+                <span id="statOnlineUsers" class="text-2xl sm:text-3xl font-display font-black text-white">1</span>
+                <span class="text-xs text-slate-400 font-bold">kishi</span>
+              </div>
+              <div class="text-[9px] text-green-400/80 mt-0.5">Hozir saytda</div>
+            </div>
+
+            <!-- 2. TOTAL VIEWS -->
+            <div class="bg-gradient-to-br from-cyan-950/40 to-slate-900 p-3.5 rounded-2xl border-2 border-cyan-500/60 shadow-lg shadow-cyan-500/10 flex flex-col justify-between">
+              <div class="text-[11px] sm:text-xs text-cyan-400 font-black flex items-center gap-1.5 uppercase tracking-wide">
+                <i class="fa-solid fa-eye text-cyan-400 text-xs"></i>
+                <span>Jami Ko'rishlar</span>
+              </div>
+              <div class="mt-1.5 flex items-baseline gap-1">
+                <span id="statTotalViews" class="text-2xl sm:text-3xl font-display font-black text-white">1</span>
+                <span class="text-xs text-slate-400 font-bold">marta</span>
+              </div>
+              <div class="text-[9px] text-cyan-400/80 mt-0.5">Umumiy tashrif</div>
+            </div>
+
+            <!-- 3. TOTAL LISTINGS -->
+            <div class="bg-brand-darker p-3.5 rounded-2xl border border-brand-cardBorder flex flex-col justify-between">
+              <div class="text-[11px] sm:text-xs text-slate-400 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-mobile-screen text-slate-400"></i>
+                <span>Jami E'lonlar</span>
+              </div>
+              <div id="statTotalListings" class="text-2xl sm:text-3xl font-display font-black text-white mt-1.5">0</div>
+              <div class="text-[9px] text-slate-500 mt-0.5">Bazada mavjud</div>
+            </div>
+
+            <!-- 4. ACTIVE VIP -->
+            <div class="bg-brand-darker p-3.5 rounded-2xl border border-green-500/40 flex flex-col justify-between">
+              <div class="text-[11px] sm:text-xs text-brand-green font-bold flex items-center gap-1">
+                <i class="fa-solid fa-crown text-brand-green"></i>
+                <span>Faol VIP</span>
+              </div>
+              <div id="statActiveVip" class="text-2xl sm:text-3xl font-display font-black text-brand-green mt-1.5">0</div>
+              <div class="text-[9px] text-green-400/70 mt-0.5">1-o'rinda turgan</div>
+            </div>
+
+            <!-- 5. PENDING VIP -->
+            <div class="bg-brand-darker p-3.5 rounded-2xl border border-blue-500/40 flex flex-col justify-between">
+              <div class="text-[11px] sm:text-xs text-blue-400 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-clock text-blue-400"></i>
+                <span>Kutilayotgan VIP</span>
+              </div>
+              <div id="statPendingVip" class="text-2xl sm:text-3xl font-display font-black text-blue-400 mt-1.5">0</div>
+              <div class="text-[9px] text-blue-400/70 mt-0.5">Tasdiqlash kerak</div>
+            </div>
+
+            <!-- 6. TOTAL EARNED -->
+            <div class="bg-brand-darker p-3.5 rounded-2xl border border-emerald-500/40 flex flex-col justify-between">
+              <div class="text-[11px] sm:text-xs text-emerald-400 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-money-bill-wave text-emerald-400"></i>
+                <span>VIP Tushum</span>
+              </div>
+              <div id="statTotalEarned" class="text-base sm:text-lg font-display font-black text-emerald-400 mt-1.5">0 so'm</div>
+              <div class="text-[9px] text-emerald-400/70 mt-0.5">Jami daromad</div>
+            </div>
+
           </div>
         </div>
 
@@ -940,10 +1005,8 @@
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed bottom-16 lg:bottom-5 right-4 sm:right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-  <!-- Scripts -->
-  <script src="/js/app.js"></script>
-  <script src="/js/admin.js"></script>
+  <!-- Scripts (Always fresh) -->
+  <script src="/js/app.js?v=5.0"></script>
+  <script src="/js/admin.js?v=5.0"></script>
 </body>
 </html>
-<script src="/js/app.js?v=6.0"></script>
-<script src="/js/admin.js?v=6.0"></script>

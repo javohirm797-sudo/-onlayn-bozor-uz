@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -16,15 +17,24 @@ const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // High-speed Performance Middlewares
-app.use(compression()); // Gzip compression reduces traffic by up to 75%
+app.use(compression());
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
-// Fast Static caching for CSS, JS, Images
+// Strict Zero-Cache Middleware (Browsers will ALWAYS load the latest version immediately!)
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
+// Static file serving with instant freshness
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1d', // 1 day browser caching for fast repeat loads
-  etag: true
+  etag: false,
+  lastModified: false,
+  maxAge: 0
 }));
 
 // Configure Multer for photo uploads
@@ -40,7 +50,25 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 15 * 1024 * 1024 } // 15MB limit per image
+  limits: { fileSize: 15 * 1024 * 1024 }
+});
+
+// Explicit Unique Visitor Ping from Client (F5 will NOT increment count!)
+app.post('/api/track-visit', async (req, res) => {
+  const { visitorId } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+  const id = visitorId || ip || 'v_default';
+  await db.trackUniqueVisitor(id, ip);
+  const online = db.getLiveOnlineCount();
+  const totalViews = await db.getUniqueVisitorsCount();
+  res.json({ success: true, online, totalViews });
+});
+
+// When user closes tab / leaves page
+app.post('/api/visitor-leave', (req, res) => {
+  const { visitorId } = req.body;
+  if (visitorId) db.removeOnlineVisitor(visitorId);
+  res.json({ success: true });
 });
 
 // Admin Auth Middleware (PIN: 23232008)
@@ -54,7 +82,21 @@ async function checkAdminAuth(req, res, next) {
   }
 }
 
-// ================= API ENDPOINTS ================= //
+// Public Live Stats Endpoint (Live Online Users & Real Unique Visitors)
+app.get('/api/stats', async (req, res) => {
+  try {
+    const totalViews = await db.getUniqueVisitorsCount();
+    const onlineUsers = db.getLiveOnlineCount();
+    const result = await db.getListings({});
+    res.json({
+      onlineUsers: Math.max(1, onlineUsers),
+      totalViews: Math.max(1, totalViews),
+      totalListings: result.total || 0
+    });
+  } catch (err) {
+    res.json({ onlineUsers: 1, totalViews: 1, totalListings: 0 });
+  }
+});
 
 // 1. Get Site Settings & Info
 app.get('/api/settings', async (req, res) => {
@@ -98,7 +140,7 @@ app.get('/api/listings/:id', async (req, res) => {
   }
 });
 
-// 4. Create New Listing (Real user phone with photos)
+// 4. Create New Listing (Permanently saved to Neon PostgreSQL)
 app.post('/api/listings', upload.array('photos', 6), async (req, res) => {
   try {
     const {
@@ -153,11 +195,11 @@ app.post('/api/listings', upload.array('photos', 6), async (req, res) => {
     };
 
     const saved = await db.createListing(newListing);
-    console.log(`[Yangi E'lon Saqlandi] ID: ${saved.id}, Sarlavha: ${saved.title}, Viloyat: ${saved.region}`);
+    console.log(`[Doimiy E'lon Saqlandi] ID: ${saved.id}, Nomi: ${saved.title}, Viloyat: ${saved.region}`);
 
     res.status(201).json({
       success: true,
-      message: "E'loningiz bazaga saqlandi va barcha xaridorlarga darhol ko'rindi!",
+      message: "E'loningiz doimiy bazaga saqlandi va barcha xaridorlarga darhol ko'rindi!",
       listing: saved
     });
   } catch (err) {
@@ -331,6 +373,7 @@ db.initDb().then(() => {
   app.listen(PORT, () => {
     console.log(`================================================`);
     console.log(`🚀 Onlayn Bozor uz serveri faol!`);
+    console.log(`🐘 Neon PostgreSQL doimiy bazasiga ulandi`);
     console.log(`🔒 Admin PIN: 23232008`);
     console.log(`🔗 Manzil: http://localhost:${PORT}`);
     console.log(`================================================`);

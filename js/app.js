@@ -7,10 +7,46 @@ let currentSelectedBrand = 'all';
 let debounceTimer = null;
 let currentDetailListing = null;
 
+// Generate or retrieve persistent unique client visitor ID (saved in browser permanently)
+let visitorId = localStorage.getItem('onlayn_bozor_user_id');
+if (!visitorId) {
+  visitorId = 'usr_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now().toString(36);
+  localStorage.setItem('onlayn_bozor_user_id', visitorId);
+}
+
+function sendVisitorPing() {
+  try {
+    fetch('/api/track-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitorId })
+    }).then(r => r.json()).then(data => {
+      if (data && data.success) {
+        const onlineEl = document.getElementById('headerOnlineCount');
+        const viewsEl = document.getElementById('headerTotalViews');
+        if (onlineEl) onlineEl.textContent = data.online || 1;
+        if (viewsEl) viewsEl.textContent = Number(data.totalViews || 1).toLocaleString('uz-UZ');
+      }
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+// When closing tab / leaving page
+window.addEventListener('pagehide', () => {
+  try {
+    const blob = new Blob([JSON.stringify({ visitorId })], { type: 'application/json' });
+    navigator.sendBeacon('/api/visitor-leave', blob);
+  } catch (e) {}
+});
+
 // Initial bootstrap
 document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorPing();
   loadSettings();
   loadListings();
+
+  // Heartbeat ping every 15 seconds for accurate live online user tracking
+  setInterval(sendVisitorPing, 15000);
 
   // Auto-sync in background every 12 seconds so new ads from anyone appear in real-time
   setInterval(loadListingsSilent, 12000);

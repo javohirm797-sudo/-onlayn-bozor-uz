@@ -25,6 +25,8 @@ function showAdminLogin() {
   }
 }
 
+let adminStatsInterval = null;
+
 // Show dashboard
 function showAdminDashboard() {
   const loginBlock = document.getElementById('adminLoginFormBlock');
@@ -36,6 +38,10 @@ function showAdminDashboard() {
   loadAdminVipRequests();
   loadAdminListings();
   loadAdminSettingsForm();
+
+  // Real-time live online counter refresh every 5 seconds
+  if (adminStatsInterval) clearInterval(adminStatsInterval);
+  adminStatsInterval = setInterval(loadAdminStats, 5000);
 }
 
 // Handle Admin Login Form Submit
@@ -132,6 +138,12 @@ async function loadAdminStats() {
     });
     if (res.ok) {
       const stats = await res.json();
+      if (document.getElementById('statOnlineUsers')) {
+        document.getElementById('statOnlineUsers').textContent = stats.onlineUsers || 1;
+      }
+      if (document.getElementById('statTotalViews')) {
+        document.getElementById('statTotalViews').textContent = Number(stats.totalViews || 1).toLocaleString('uz-UZ');
+      }
       if (document.getElementById('statTotalListings')) document.getElementById('statTotalListings').textContent = stats.totalListings || 0;
       if (document.getElementById('statActiveVip')) document.getElementById('statActiveVip').textContent = stats.activeVipListings || 0;
       if (document.getElementById('statPendingVip')) document.getElementById('statPendingVip').textContent = stats.pendingRequests || 0;
